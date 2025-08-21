@@ -53,6 +53,9 @@ web_modules/
 # Optional eslint cache
 .eslintcache
 
+# Optional eslint report
+eslint-report.json
+
 # Optional stylelint cache
 .stylelintcache
 

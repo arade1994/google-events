@@ -1,0 +1,51 @@
+{
+  "name": "server",
+  "version": "1.0.0",
+  "main": "index.ts",
+  "scripts": {
+    "dev": "ts-node-dev index.ts",
+    "build": "tsc -p tsconfig.build.json",
+    "start": "node build/index.js",
+    "lint": "eslint . --quiet",
+    "lint:ci": "eslint . --quiet",
+    "lint:fix": "eslint --fix",
+    "lint:eslint": "eslint --cache --format json --output-file eslint-report.json",
+    "lint:tsc": "tsc --project tsconfig.json --noEmit",
+    "lint:ts-coverage": "type-coverage",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "type-check": "tsc --noEmit",
+    "ts-coverage": "type-coverage --detail --at-least 90"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "devDependencies": {
+    "@eslint/eslintrc": "^3.3.1",
+    "@eslint/js": "^9.33.0",
+    "@types/express": "^5.0.3",
+    "@types/jest": "^30.0.0",
+    "@types/node": "^24.3.0",
+    "@types/supertest": "^6.0.3",
+    "@typescript-eslint/eslint-plugin": "^8.40.0",
+    "@typescript-eslint/parser": "^8.40.0",
+    "eslint": "^9.33.0",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-jest": "^29.0.1",
+    "eslint-plugin-no-relative-import-paths": "^1.6.1",
+    "eslint-plugin-simple-import-sort": "^12.1.1",
+    "globals": "^16.3.0",
+    "jest": "^30.0.5",
+    "supertest": "^7.1.4",
+    "ts-jest": "^29.4.1",
+    "ts-node-dev": "^2.0.0",
+    "type-coverage": "^2.29.7",
+    "typescript": "^5.9.2",
+    "typescript-eslint": "^8.40.0"
+  },
+  "dependencies": {
+    "express": "^5.1.0"
+  }
+}
