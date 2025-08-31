@@ -1,9 +1,19 @@
 import app from "./src/app";
+import { AppDataSource } from "./src/data-source";
+
+import "reflect-metadata";
 
 const start = () => {
-  app.listen(4000, () => {
-    console.log("Server running on http://localhost:4000");
-  });
+  AppDataSource.initialize()
+    .then(() => {
+      console.log("Database connected");
+      app.listen(4000, () => {
+        console.log("Server running on http://localhost:4000");
+      });
+    })
+    .catch((error) => {
+      console.error("Database connection error:", error);
+    });
 };
 
 start();

@@ -1,11 +1,12 @@
 import express from "express";
 import dotenv from "dotenv";
 import passport from "passport";
-import { Strategy as GoogleStrategy, Profile } from "passport-google-oauth20";
+import { Strategy as GoogleStrategy } from "passport-google-oauth20";
 import cookieParser from "cookie-parser";
 import cors from "cors";
-import { GoogleUser } from "./types/user";
 import authRouter from "./routes/auth";
+import { AppDataSource } from "./data-source";
+import { User } from "./entities/User";
 
 dotenv.config();
 
@@ -31,14 +32,29 @@ passport.use(
       clientSecret: process.env.GOOGLE_CLIENT_SECRET || "",
       callbackURL: "http://localhost:4000/auth/google/callback",
     },
-    (accessToken, refreshToken, profile: Profile, done) => {
-      const user: GoogleUser = {
-        id: profile.id,
-        displayName: profile.displayName,
-        emails: profile.emails?.map((e) => ({ value: e.value })) || [],
-      };
+    async (accessToken, refreshToken, profile, done) => {
+      try {
+        const userRepo = AppDataSource.getRepository(User);
 
-      return done(null, user);
+        let user = await userRepo.findOneBy({ googleId: profile.id });
+
+        if (!user) {
+          user = userRepo.create({
+            googleId: profile.id,
+            displayName: profile.displayName,
+            email: profile.emails?.[0]?.value || "",
+          });
+          await userRepo.save(user);
+        }
+
+        // save tokens in memory for later use if needed (or return them directly)
+        (user as any).googleAccessToken = accessToken;
+        (user as any).googleRefreshToken = refreshToken;
+
+        return done(null, user);
+      } catch (err) {
+        return done(err, undefined);
+      }
     }
   )
 );
