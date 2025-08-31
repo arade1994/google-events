@@ -11,7 +11,7 @@ export const AppDataSource = new DataSource({
   password: process.env.DB_PASSWORD || "admin",
   database: process.env.DB_NAME || "google_events_db",
   synchronize: true,
-  logging: true,
+  logging: false,
   entities: [User, Event],
   migrations: [],
   subscribers: [],

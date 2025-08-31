@@ -5,8 +5,10 @@ import { Strategy as GoogleStrategy } from "passport-google-oauth20";
 import cookieParser from "cookie-parser";
 import cors from "cors";
 import authRouter from "./routes/auth";
+import eventsRouter from "./routes/events";
 import { AppDataSource } from "./data-source";
 import { User } from "./entities/User";
+import { encrypt } from "./utils/tokens";
 
 dotenv.config();
 
@@ -24,6 +26,7 @@ app.use(
 app.use(passport.initialize());
 
 app.use("/auth", authRouter);
+app.use("/events", eventsRouter);
 
 passport.use(
   new GoogleStrategy(
@@ -47,9 +50,10 @@ passport.use(
           await userRepo.save(user);
         }
 
-        // save tokens in memory for later use if needed (or return them directly)
-        (user as any).googleAccessToken = accessToken;
-        (user as any).googleRefreshToken = refreshToken;
+        user.accessToken = encrypt(accessToken);
+        user.refreshToken = encrypt(refreshToken);
+
+        await userRepo.save(user);
 
         return done(null, user);
       } catch (err) {

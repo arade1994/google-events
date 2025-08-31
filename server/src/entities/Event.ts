@@ -9,7 +9,7 @@ export class Event {
   @Column()
   googleEventId!: string;
 
-  @Column()
+  @Column({ nullable: true })
   name!: string;
 
   @Column({ nullable: true })
