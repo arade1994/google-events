@@ -32,8 +32,16 @@ router.get("/sync", async (req: Request, res: Response) => {
 
     const googleEvents = await fetchGoogleEvents(accessToken, refreshToken);
 
+    const googleEventIds = new Set<string>();
+
     for (const event of googleEvents) {
       if (!event.id) continue;
+      googleEventIds.add(event.id);
+
+      if (event.status === "cancelled") {
+        await eventRepo.delete({ googleEventId: event.id });
+        continue;
+      }
 
       const existing = await eventRepo.findOneBy({ googleEventId: event.id });
       if (!existing) {
@@ -47,13 +55,46 @@ router.get("/sync", async (req: Request, res: Response) => {
         });
         await eventRepo.save(newEvent);
       }
+
+      const dbEvents = await eventRepo.find({
+        where: { user: { id: user.id } },
+      });
+      for (const dbEvent of dbEvents) {
+        if (!googleEventIds.has(dbEvent.googleEventId)) {
+          await eventRepo.remove(dbEvent);
+        }
+      }
     }
 
     res.json({ message: "Events synced" });
   } catch (error) {
-    console.error(error);
     res.status(500).json({ message: "Syncing events failed" });
   }
+});
+
+router.get("/", async (req: Request, res: Response) => {
+  const userRepo = AppDataSource.getRepository(User);
+  const eventRepo = AppDataSource.getRepository(Event);
+
+  let decodedJwt: any;
+  const token = req.cookies.jwt;
+
+  if (!token) return res.status(401).json({ message: "Not logged in" });
+
+  try {
+    decodedJwt = jwt.verify(token, process.env.JWT_SECRET || "");
+  } catch {
+    res.status(401).json({ message: "Invalid token" });
+  }
+
+  const user = await userRepo.findOneBy({ id: decodedJwt?.id });
+  if (!user) return res.status(404).json({ message: "User not found" });
+
+  const events = await eventRepo.find({
+    where: { user },
+    order: { start: "ASC" },
+  });
+  res.json(events);
 });
 
 export default router;

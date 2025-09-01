@@ -4,7 +4,7 @@ export async function fetchGoogleEvents(
   accessToken?: string,
   refreshToken?: string
 ) {
-  if (!accessToken) {
+  if (!accessToken || !refreshToken) {
     throw new Error("Access token or refresh token is missing");
   }
 
@@ -23,11 +23,19 @@ export async function fetchGoogleEvents(
     auth: oauth2Client,
   });
 
+  const now = new Date();
+  const past = new Date();
+  past.setMonth(now.getMonth() - 3);
+  const future = new Date();
+  future.setMonth(now.getMonth() + 3);
+
   const events = await calendar.events.list({
     calendarId: "primary",
     singleEvents: true,
     orderBy: "startTime",
-    maxResults: 20,
+    timeMin: past.toISOString(),
+    timeMax: future.toISOString(),
+    showDeleted: true,
   });
 
   return events.data.items || [];
