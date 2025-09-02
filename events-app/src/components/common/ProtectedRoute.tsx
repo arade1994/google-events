@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router";
-import { useAuth } from "../context/AuthContext";
 import styles from "./ProtectedRoute.module.scss";
 import { useEffect } from "react";
+import { useAuth } from "../../context/AuthContext";
 import Spinner from "./Spinner";
 
 export default function ProtectedRoute({
