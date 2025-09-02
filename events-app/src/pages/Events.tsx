@@ -6,7 +6,8 @@ import { getEvents, syncEvents } from "../services/api";
 import { groupByDay, groupByWeek } from "../utils/groupEvents";
 import Spinner from "../components/Spinner";
 import dayjs from "../lib/dayjs";
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
+import { useSearchParams } from "react-router";
 
 function formatTime(date: string) {
   const userTz = dayjs.tz.guess();
@@ -22,18 +23,24 @@ function formatDayTime(date: string) {
 export default function Events() {
   const { logout } = useAuth();
   const queryClient = useQueryClient();
-  const [filterDays, setFilterDays] = useState(7);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const filterDays = Number(searchParams.get("filterDays")) || 7;
+
+  function handleSetFilterDays(days: number) {
+    searchParams.set("filterDays", days.toString());
+    setSearchParams(searchParams);
+  }
 
   const { data: events, isLoading: isFetchingEvents } = useQuery({
-    queryKey: ["events"],
-    queryFn: getEvents,
+    queryKey: ["events", filterDays],
+    queryFn: () => getEvents(filterDays),
     placeholderData: [],
   });
 
   const { mutate: triggerSync, isPending: isSyncing } = useMutation({
     mutationFn: syncEvents,
     onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: ["events"] });
+      await queryClient.invalidateQueries({ queryKey: ["events", filterDays] });
       toast.success("Events synced");
     },
     onError: () => {
@@ -41,28 +48,10 @@ export default function Events() {
     },
   });
 
-  const filteredEvents = useMemo(() => {
-    if (!events) {
-      return [];
-    }
-    const today = dayjs().startOf("day");
-    const futureDate = today.add(filterDays, "day").endOf("day");
-
-    return events.filter((event) => {
-      const eventDate = dayjs(event.start);
-      return (
-        eventDate.isAfter(today.subtract(1, "day")) &&
-        eventDate.isBefore(futureDate)
-      );
-    });
-  }, [events, filterDays]);
-
   const groupedEvents = useMemo(
     () =>
-      filterDays === 30
-        ? groupByWeek(filteredEvents)
-        : groupByDay(filteredEvents),
-    [filteredEvents, filterDays]
+      filterDays === 30 ? groupByWeek(events || []) : groupByDay(events || []),
+    [events, filterDays]
   );
 
   if (isFetchingEvents || isSyncing) return <Spinner />;
@@ -86,7 +75,7 @@ export default function Events() {
           className={`${styles.filterButton} ${
             filterDays === 1 ? styles.active : ""
           }`}
-          onClick={() => setFilterDays(1)}
+          onClick={() => handleSetFilterDays(1)}
         >
           Next Day
         </button>
@@ -94,7 +83,7 @@ export default function Events() {
           className={`${styles.filterButton} ${
             filterDays === 7 ? styles.active : ""
           }`}
-          onClick={() => setFilterDays(3)}
+          onClick={() => handleSetFilterDays(7)}
         >
           Next 7 Days
         </button>
@@ -102,7 +91,7 @@ export default function Events() {
           className={`${styles.filterButton} ${
             filterDays === 30 ? styles.active : ""
           }`}
-          onClick={() => setFilterDays(30)}
+          onClick={() => handleSetFilterDays(30)}
         >
           Next 30 Days
         </button>

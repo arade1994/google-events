@@ -5,6 +5,8 @@ import { fetchGoogleEvents } from "../services/googleCalendar";
 import { Event } from "../entities/Event";
 import jwt from "jsonwebtoken";
 import { decrypt } from "../utils/tokens";
+import { Between } from "typeorm";
+import dayjs from "dayjs";
 
 const router = Router();
 
@@ -72,7 +74,8 @@ router.get("/sync", async (req: Request, res: Response) => {
   }
 });
 
-router.get("/", async (req: Request, res: Response) => {
+router.get("/:filterDays", async (req: Request, res: Response) => {
+  const filterDays = parseInt(req.params.filterDays) || 7;
   const userRepo = AppDataSource.getRepository(User);
   const eventRepo = AppDataSource.getRepository(Event);
 
@@ -90,8 +93,17 @@ router.get("/", async (req: Request, res: Response) => {
   const user = await userRepo.findOneBy({ id: decodedJwt?.id });
   if (!user) return res.status(404).json({ message: "User not found" });
 
+  const startDate = dayjs();
+  const endDate = startDate.add(filterDays, "day");
+
   const events = await eventRepo.find({
-    where: { user },
+    where: {
+      user,
+      start: Between(
+        startDate.format("YYYY-MM-DDTHH:mm:ss"),
+        endDate.format("YYYY-MM-DDTHH:mm:ss")
+      ),
+    },
     order: { start: "ASC" },
   });
   res.json(events);

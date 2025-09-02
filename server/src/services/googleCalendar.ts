@@ -1,4 +1,5 @@
 import { google } from "googleapis";
+import dayjs from "dayjs";
 
 export async function fetchGoogleEvents(
   accessToken?: string,
@@ -23,18 +24,15 @@ export async function fetchGoogleEvents(
     auth: oauth2Client,
   });
 
-  const now = new Date();
-  const past = new Date();
-  past.setMonth(now.getMonth() - 3);
-  const future = new Date();
-  future.setMonth(now.getMonth() + 3);
+  const timeMin = dayjs().subtract(3, "month").toISOString();
+  const timeMax = dayjs().add(3, "month").toISOString();
 
   const events = await calendar.events.list({
     calendarId: "primary",
     singleEvents: true,
     orderBy: "startTime",
-    timeMin: past.toISOString(),
-    timeMax: future.toISOString(),
+    timeMin,
+    timeMax,
     showDeleted: true,
   });
 
