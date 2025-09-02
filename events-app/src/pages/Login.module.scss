@@ -4,22 +4,44 @@
   align-items: center;
   justify-content: center;
   height: 100vh;
+  background-color: #f8f9fa;
+  font-family: "Roboto", sans-serif;
 
-  & .loginButton {
-    top: 1rem;
-    right: 1rem;
-    padding: 0.5rem 1rem;
-    background-color: #cf5739;
-    color: white;
-    border: none;
-    border-radius: 0.25rem;
+  h1 {
+    font-size: 2.5rem;
+    color: #333;
+    margin-bottom: 2rem;
+  }
+
+  .loginButton {
+    display: flex;
+    align-items: center;
+    padding: 10px 24px;
+    background-color: #ffffff;
+    color: #3c4043;
+    border: 1px solid #dadce0;
+    border-radius: 4px;
     cursor: pointer;
     font-size: 1rem;
-    font-weight: bold;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
+    font-weight: 500;
+    box-shadow: 0 1px 2px 0 rgba(60, 64, 67, 0.3),
+      0 1px 3px 1px rgba(60, 64, 67, 0.15);
+    transition: box-shadow 0.3s ease, background-color 0.3s ease;
 
     &:hover {
-      background-color: #a53215;
+      box-shadow: 0 1px 3px 0 rgba(60, 64, 67, 0.3),
+        0 4px 8px 3px rgba(60, 64, 67, 0.15);
+      background-color: #f8f9fa;
+    }
+
+    .googleIcon {
+      width: 24px;
+      height: 24px;
+      margin-right: 24px;
+    }
+
+    span {
+      font-family: "Roboto", sans-serif;
     }
   }
 }

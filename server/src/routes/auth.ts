@@ -8,8 +8,14 @@ const router = Router();
 router.get(
   "/google",
   passport.authenticate("google", {
-    scope: ["profile", "email"],
+    scope: [
+      "profile",
+      "email",
+      "https://www.googleapis.com/auth/calendar.readonly",
+    ],
     session: false,
+    accessType: "offline",
+    prompt: "consent",
   })
 );
 
