@@ -8,16 +8,16 @@ export type Grouped = {
   events: Event[];
 };
 
-export function groupByDay(events: Event[]): Grouped[] {
+export function groupEventsByDay(events: Event[]): Grouped[] {
   const map = new Map<string, Event[]>();
 
-  for (const e of events) {
-    const userTz = dayjs.tz.guess();
+  for (const event of events) {
+    const timezone = dayjs.tz.guess();
 
-    const key = dayjs(e.start).tz(userTz).format("YYYY-MM-DD");
+    const key = dayjs(event.start).tz(timezone).format("YYYY-MM-DD");
 
     const list = map.get(key) ?? [];
-    list.push(e);
+    list.push(event);
     map.set(key, list);
   }
 
@@ -39,18 +39,18 @@ export function groupByDay(events: Event[]): Grouped[] {
   return groups;
 }
 
-export function groupByWeek(events: Event[]): Grouped[] {
+export function groupEventsByWeek(events: Event[]): Grouped[] {
   const userTz = dayjs.tz.guess();
   const map = new Map<string, Event[]>();
 
-  for (const e of events) {
-    const d = dayjs(e.start).tz(userTz);
+  for (const event of events) {
+    const d = dayjs(event.start).tz(userTz);
 
     const startOfWeek = d.startOf("week");
     const key = startOfWeek.format("YYYY-MM-DD");
 
     const list = map.get(key) ?? [];
-    list.push(e);
+    list.push(event);
     map.set(key, list);
   }
 

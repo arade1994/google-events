@@ -2,6 +2,8 @@ import { type Request, type Response, Router } from "express";
 import passport from "passport";
 import jwt from "jsonwebtoken";
 import { GoogleUser } from "../types/user";
+import { requireAuth } from "../middlewares/requireAuth";
+import { decodeToken } from "../middlewares/decodeToken";
 
 const router = Router();
 
@@ -48,18 +50,15 @@ router.get(
   }
 );
 
-router.get("/current_user", (req: Request, res: Response) => {
-  const token = req.cookies.jwt;
-
-  if (!token) return res.status(401).json({ message: "Not logged in" });
-
-  try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || "");
-    res.json(decoded);
-  } catch {
-    res.status(401).json({ message: "Invalid token" });
+router.get(
+  "/current_user",
+  requireAuth,
+  decodeToken,
+  (req: Request, res: Response) => {
+    const user = req.user as GoogleUser;
+    res.json(user);
   }
-});
+);
 
 router.post("/logout", (req: Request, res: Response) => {
   res.clearCookie("jwt");
