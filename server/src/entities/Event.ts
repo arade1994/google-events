@@ -6,7 +6,7 @@ export class Event {
   @PrimaryGeneratedColumn("uuid")
   id!: string;
 
-  @Column()
+  @Column({ unique: true })
   googleEventId!: string;
 
   @Column({ nullable: true })

@@ -6,10 +6,9 @@ import cookieParser from "cookie-parser";
 import cors from "cors";
 import authRouter from "./routes/auth";
 import eventsRouter from "./routes/events";
-import { AppDataSource } from "./data-source";
-import { User } from "./entities/User";
 import { encrypt } from "./utils/tokens";
 import { json } from "body-parser";
+import { userRepo } from "./repositories";
 
 dotenv.config();
 
@@ -35,27 +34,25 @@ passport.use(
     {
       clientID: process.env.GOOGLE_CLIENT_ID || "",
       clientSecret: process.env.GOOGLE_CLIENT_SECRET || "",
-      callbackURL: "http://localhost:4000/auth/google/callback",
+      callbackURL: process.env.GOOGLE_CALLBACK_URL || "",
     },
     async (accessToken, refreshToken, profile, done) => {
       try {
-        const userRepo = AppDataSource.getRepository(User);
-
-        let user = await userRepo.findOneBy({ googleId: profile.id });
+        let user = await userRepo().findOneBy({ googleId: profile.id });
 
         if (!user) {
-          user = userRepo.create({
+          user = userRepo().create({
             googleId: profile.id,
             displayName: profile.displayName,
             email: profile.emails?.[0]?.value || "",
           });
-          await userRepo.save(user);
+          await userRepo().save(user);
         }
 
         user.accessToken = encrypt(accessToken);
         user.refreshToken = encrypt(refreshToken);
 
-        await userRepo.save(user);
+        await userRepo().save(user);
 
         return done(null, user);
       } catch (err) {
