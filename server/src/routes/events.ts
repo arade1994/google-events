@@ -3,13 +3,15 @@ import { AppDataSource } from "../data-source";
 import { User } from "../entities/User";
 import { fetchGoogleEvents } from "../services/googleCalendar";
 import { Event } from "../entities/Event";
-import jwt from "jsonwebtoken";
 import { decrypt } from "../utils/tokens";
 import { Between } from "typeorm";
-import dayjs from "dayjs";
+import dayjs from "../lib/dayjs";
 import { requireAuth } from "../middlewares/requireAuth";
 import { GoogleUser } from "../types/user";
 import { decodeToken } from "../middlewares/decodeToken";
+import { google } from "googleapis";
+import { body } from "express-validator";
+import { validateRequest } from "../middlewares/validateRequest";
 
 const router = Router();
 
@@ -73,13 +75,14 @@ router.get(
 );
 
 router.get(
-  "/:filterDays",
+  "/:days",
   requireAuth,
   decodeToken,
   async (req: Request, res: Response) => {
     const googleUser = req.user as GoogleUser;
 
-    const filterDays = parseInt(req.params.filterDays) || 7;
+    const days = parseInt(req.params.days) || 7;
+
     const userRepo = AppDataSource.getRepository(User);
     const eventRepo = AppDataSource.getRepository(Event);
 
@@ -87,7 +90,7 @@ router.get(
     if (!user) return res.status(404).json({ message: "User not found" });
 
     const startDate = dayjs();
-    const endDate = startDate.add(filterDays, "day");
+    const endDate = startDate.add(days, "day");
 
     const events = await eventRepo.find({
       where: {
@@ -100,6 +103,75 @@ router.get(
       order: { start: "ASC" },
     });
     res.json(events);
+  }
+);
+
+router.post(
+  "/create",
+  requireAuth,
+  decodeToken,
+  [
+    body("name").notEmpty().withMessage("Name is required"),
+    body("description").notEmpty().withMessage("Description is required"),
+    body("startTime").notEmpty().withMessage("Start time is required"),
+    body("endTime").notEmpty().withMessage("End time is required"),
+  ],
+  validateRequest,
+  async (req: Request, res: Response) => {
+    try {
+      const googleUser = req.user as GoogleUser;
+      const { name, description, startTime, endTime } = req.body;
+
+      const userRepo = AppDataSource.getRepository(User);
+      const eventRepo = AppDataSource.getRepository(Event);
+      const user = await userRepo.findOneBy({ id: googleUser.id });
+      if (!user) return res.status(404).json({ message: "User not found" });
+
+      const oauthClient = new google.auth.OAuth2(
+        process.env.GOOGLE_CLIENT_ID,
+        process.env.GOOGLE_CLIENT_SECRET
+      );
+
+      oauthClient.setCredentials({
+        access_token: decrypt(user.accessToken || ""),
+        refresh_token: decrypt(user.refreshToken || ""),
+      });
+
+      const calendar = google.calendar({ version: "v3", auth: oauthClient });
+
+      const event = {
+        summary: name,
+        description,
+        start: {
+          dateTime: startTime,
+          timeZone: dayjs.tz.guess(),
+        },
+        end: {
+          dateTime: endTime,
+          timeZone: dayjs.tz.guess(),
+        },
+      };
+
+      const response = await calendar.events.insert({
+        calendarId: "primary",
+        requestBody: event,
+      });
+
+      const createdEvent = response.data;
+
+      await eventRepo.save({
+        googleEventId: createdEvent.id!,
+        name: createdEvent.summary || "Untitled",
+        description: createdEvent.description || "",
+        start: createdEvent.start?.dateTime || createdEvent.start?.date!,
+        end: createdEvent.end?.dateTime || createdEvent.end?.date!,
+        user,
+      });
+
+      return res.json({ message: "Event created", event: response.data });
+    } catch (error) {
+      res.status(500).json({ message: "Creating event failed" });
+    }
   }
 );
 
