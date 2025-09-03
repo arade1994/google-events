@@ -55,7 +55,7 @@ export default function CreateEventForm({ onClose }: { onClose: () => void }) {
   );
 
   return (
-    <div>
+    <>
       <h2 className={styles.title}>Create New Event</h2>
       <form className={styles.form} onSubmit={handleCreateEvent}>
         <div className={styles.formRow}>
@@ -145,6 +145,6 @@ export default function CreateEventForm({ onClose }: { onClose: () => void }) {
         </div>
         <button className={styles.button}>Create Event</button>
       </form>
-    </div>
+    </>
   );
 }
