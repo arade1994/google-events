@@ -9,7 +9,8 @@
     "skipLibCheck": true,
     "strict": true,
     "emitDecoratorMetadata": true,
-    "experimentalDecorators": true
+    "experimentalDecorators": true,
+    "strictPropertyInitialization": false
   },
   "lib": ["es2015"]
 }

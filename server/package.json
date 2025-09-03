@@ -3,9 +3,16 @@
   "version": "1.0.0",
   "main": "index.ts",
   "scripts": {
-    "dev": "ts-node-dev index.ts",
+    "dev": "ts-node-dev index.ts --transpile-only",
     "build": "tsc -p tsconfig.build.json",
-    "start": "node build/index.js"
+    "start": "node build/index.js",
+    "typeorm": "typeorm-ts-node-commonjs -d src/data-source.ts",
+    "migration:generate": "pnpm typeorm migration:generate src/migrations --",
+    "migration:create": "pnpm typeorm migration:create src/migrations --",
+    "migration:run": "pnpm typeorm migration:run",
+    "migration:revert": "pnpm typeorm migration:revert",
+    "migration:prod:run": "typeorm -d dist/data-source.js migration:run",
+    "migration:prod:revert": "typeorm -d dist/data-source.js migration:revert"
   },
   "keywords": [],
   "author": "",
@@ -20,7 +27,9 @@
     "@types/passport": "^1.0.17",
     "@types/passport-google-oauth20": "^2.0.16",
     "ts-jest": "^29.4.1",
+    "ts-node": "^10.9.2",
     "ts-node-dev": "^2.0.0",
+    "typeorm": "^0.3.26",
     "typescript": "^5.9.2"
   },
   "dependencies": {
@@ -38,7 +47,6 @@
     "passport": "^0.7.0",
     "passport-google-oauth20": "^2.0.0",
     "pg": "^8.16.3",
-    "reflect-metadata": "^0.2.2",
-    "typeorm": "^0.3.26"
+    "reflect-metadata": "^0.2.2"
   }
 }
