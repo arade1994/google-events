@@ -6,3 +6,10 @@ export interface Event {
   start: string;
   end: string;
 }
+
+export interface CreateEventData {
+  name: string;
+  description: string;
+  startTime: string;
+  endTime: string;
+}

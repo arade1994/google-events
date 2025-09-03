@@ -9,6 +9,7 @@ import eventsRouter from "./routes/events";
 import { AppDataSource } from "./data-source";
 import { User } from "./entities/User";
 import { encrypt } from "./utils/tokens";
+import { json } from "body-parser";
 
 dotenv.config();
 
@@ -22,6 +23,7 @@ app.use(
     credentials: true,
   })
 );
+app.use(json());
 
 app.use(passport.initialize());
 
@@ -62,7 +64,5 @@ passport.use(
     }
   )
 );
-
-app.use(passport.initialize());
 
 export default app;

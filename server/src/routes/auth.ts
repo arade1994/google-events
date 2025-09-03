@@ -13,7 +13,7 @@ router.get(
     scope: [
       "profile",
       "email",
-      "https://www.googleapis.com/auth/calendar.readonly",
+      "https://www.googleapis.com/auth/calendar.events",
     ],
     session: false,
     accessType: "offline",
